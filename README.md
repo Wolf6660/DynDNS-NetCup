@@ -1,15 +1,5 @@
 # DynDNS for Netcup
 
-Dieses Projekt kann jetzt containerisiert betrieben und sicher auf GitHub veröffentlicht werden, ohne produktive Daten oder Secrets mitzuveröffentlichen.
-
-## Was wurde umgestellt
-
-- Docker-Setup mit `Dockerfile` und `docker-compose.yml`
-- Konfiguration per Umgebungsvariablen statt fest eingebauter Zugangsdaten
-- automatische SQLite-Initialisierung und Schema-Erweiterung beim Start
-- sichere `.gitignore`-Regeln für Datenbank, Exporte, Logs und `.env`
-- optionale Datenübernahme einer bestehenden SQLite-Datei beim ersten Containerstart
-
 ## Schnellstart
 
 1. Beispielkonfiguration kopieren:
@@ -28,62 +18,78 @@ docker compose up -d --build
 
 4. Admin-Oberfläche öffnen:
 
-- [http://localhost:8080/domains.php](http://localhost:8080/domains.php)
+- [http://IP-Docker-Server:8080](http://IP-Docker-Server:8080)
 
-## Datenübernahme von Synology
+## Hinweise zur Konfiguration
 
-Deine Daten muessen nicht auf GitHub hochgeladen werden. Es gibt zwei sichere Wege:
+Die Datei `.env` muss an deine eigene Umgebung angepasst werden. Am einfachsten ist es, wenn du zuerst die Vorlage kopierst:
 
-### Variante A: Bestehende SQLite direkt uebernehmen
-
-1. Kopiere deine bestehende Datei `dyndns.sqlite` nach:
-
-```text
-docker-import/dyndns.sqlite
+```bash
+cp .env.example .env
 ```
 
-2. Starte danach den Container neu:
+Danach oeffnest du `.env` und aenderst mindestens diese Werte:
+
+```env
+# Port vom Docker-Container auf deiner Synology
+# Beispiel: 8080 bedeutet Aufruf ueber http://IP-Docker-Server:8080
+APP_PORT=8080
+
+# Frei waehlen. Wird zum Signieren der Exportdateien verwendet.
+# Sollte lang und zufaellig sein.
+APP_SIGNING_SECRET=bitte-hier-ein-langes-geheimes-passwort-eintragen
+
+# Frei waehlen. Wird fuer die lokale Verschluesselung von Tokens verwendet.
+# Ebenfalls lang und zufaellig waehlen.
+APP_TOKEN_MASTER_KEY=bitte-hier-einen-zweiten-langen-geheimen-schluessel-eintragen
+
+# Deine Hauptdomain bzw. DNS-Zone bei Netcup
+# Beispiel: example.de
+APP_BASE_ZONE=deine-domain.de
+
+# Deine Netcup Kundennummer
+NETCUP_CUSTOMER_NUMBER=123456
+
+# Dein Netcup API Key
+NETCUP_API_KEY=hier-dein-netcup-api-key
+
+# Dein Netcup API Passwort
+NETCUP_API_PASSWORD=hier-dein-netcup-api-passwort
+
+# Upload-Methode fuer die Exportdateien
+# In deinem Fall normalerweise ftp
+UPLOAD_METHOD=ftp
+
+# FTP-Server oder Zielhost
+FTP_HOST=ftp.deine-domain.de
+
+# FTP-Port, meistens 21
+FTP_PORT=21
+
+# FTPS nur aktivieren, wenn dein Server das wirklich nutzt
+FTP_SSL=false
+
+# FTP-Benutzername
+FTP_USER=dein-ftp-benutzer
+
+# FTP-Passwort
+FTP_PASS=dein-ftp-passwort
+
+# Passive Verbindung ist in den meisten Faellen richtig
+FTP_PASSIVE=true
+```
+
+Wenn du unsicher bist, kannst du dich an diese einfache Regel halten:
+
+- Alles mit `deine-...`, `hier-...` oder `bitte-...` musst du anpassen.
+- Alles andere kann erstmal so bleiben.
+
+Nach dem Speichern kannst du den Container starten:
 
 ```bash
 docker compose up -d --build
 ```
 
-Beim ersten Start wird die Datenbank automatisch nach `runtime/data/dyndns.sqlite` uebernommen, falls dort noch keine Datenbank existiert.
+Danach ist die Oberflaeche ueber diese Adresse erreichbar:
 
-### Variante B: Laufende Daten dauerhaft ausserhalb des Images speichern
-
-Der Container nutzt bereits Bind-Mounts:
-
-- `./runtime/data` fuer SQLite
-- `./runtime/export` fuer erzeugte Exportdateien
-
-Damit bleiben deine Daten beim Update des Containers erhalten und werden wegen `.gitignore` nicht in Git aufgenommen.
-
-## Sicher fuer GitHub
-
-Nicht veroeffentlicht werden durch die `.gitignore` unter anderem:
-
-- `.env`
-- `data/*.sqlite`
-- `runtime/*`
-- `export/*.json`
-- `*.sig`
-- Logs
-
-Wichtig: Vor dem ersten Push nur `.env.example` committen, niemals deine echte `.env`.
-
-## Hinweise zur Konfiguration
-
-Die wichtigsten Werte in `.env`:
-
-- `APP_SIGNING_SECRET`
-- `APP_TOKEN_MASTER_KEY`
-- `APP_BASE_ZONE`
-- `NETCUP_CUSTOMER_NUMBER`
-- `NETCUP_API_KEY`
-- `NETCUP_API_PASSWORD`
-- `FTP_HOST`
-- `FTP_USER`
-- `FTP_PASS`
-
-Der mitgelieferte Ordner `NetCup Server` wurde ebenfalls auf Umgebungsvariablen vorbereitet, damit auch dort keine echten Schluessel ins Repository muessen.
+- `http://IP-Docker-Server:8080`

@@ -1,2 +1,4 @@
 <?php
-echo "DynDNS Admin – Synology OK";
+
+header('Location: /domains.php', true, 302);
+exit;
