@@ -29,6 +29,7 @@ API_PORT=8081
 APP_SIGNING_SECRET=bitte-lang-und-zufaellig-waehlen
 APP_TOKEN_MASTER_KEY=bitte-auch-lang-und-zufaellig-waehlen
 APP_BASE_ZONE=deine-domain.de
+DYNDNS_MODE=local_api
 DYNDNS_UPDATE_URL=http://IP-Docker-Server:8081/api/update.php
 
 NETCUP_CUSTOMER_NUMBER=123456

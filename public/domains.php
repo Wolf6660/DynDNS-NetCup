@@ -598,6 +598,10 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
       <code><?= h((string)($cfg['base_zone'] ?? '')) ?: 'nicht gesetzt' ?></code>
     </div>
     <div>
+      <label>DynDNS-Modus</label>
+      <code><?= h((string)($cfg['dyndns_mode'] ?? '')) ?: 'nicht gesetzt' ?></code>
+    </div>
+    <div>
       <label>DynDNS Update-URL</label>
       <code><?= h((string)($cfg['update_url'] ?? '')) ?: 'nicht gesetzt' ?></code>
     </div>

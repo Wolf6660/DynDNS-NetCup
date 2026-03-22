@@ -45,6 +45,7 @@ APP_PORT=8080
 APP_SIGNING_SECRET=bitte-lang-und-zufaellig-waehlen
 APP_TOKEN_MASTER_KEY=bitte-auch-lang-und-zufaellig-waehlen
 APP_BASE_ZONE=deine-domain.de
+DYNDNS_MODE=netcup_webspace
 DYNDNS_UPDATE_URL=
 
 NETCUP_CUSTOMER_NUMBER=123456
@@ -84,6 +85,19 @@ Anleitung:
 
 - `Netcup-Webspace`: kein externer Zugriff auf deine Synology noetig, aber die Netcup-API-Daten liegen auf dem Webspace
 - `Docker extra API-Port`: Netcup-API-Daten bleiben lokal, dafuer braucht die API einen getrennten von aussen erreichbaren Port
+
+## Welche Einstellung muss ich in `.env` setzen?
+
+In deiner `.env` gibt es jetzt einen klaren Schalter:
+
+```env
+DYNDNS_MODE=netcup_webspace
+```
+
+Moegliche Werte:
+
+- `netcup_webspace` = Update ueber Dateien auf dem Netcup-Webspace
+- `local_api` = Update direkt ueber Docker auf extra API-Port
 
 ## Wo ist das Webinterface?
 
