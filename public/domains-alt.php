@@ -393,7 +393,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_domain'])) {
         if ($recordId === '') {
             $flash = ['type' => 'error', 'msg' => 'Bitte Record-ID ausfüllen. (Automatische Erstellung kommt im nächsten Schritt)'];
         } elseif (!preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/i', $fqdn)) {
-            $flash = ['type' => 'error', 'msg' => 'FQDN sieht ungültig aus (z.B. test.dyndns-bellheim.de).'];
+            $flash = ['type' => 'error', 'msg' => 'FQDN sieht ungültig aus (z.B. test.example.de).'];
         } else {
             $newToken = random_token(48);
             $hash = token_hash($newToken);
@@ -546,7 +546,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
     <input type="hidden" name="create_domain" value="1">
     <div class="row">
       <div>
-        <label>Host oder FQDN (z.B. test oder test.dyndns-bellheim.de)</label>
+        <label>Host oder FQDN (z.B. test oder test.example.de)</label>
         <input name="fqdn" placeholder="test" required>
       </div>
       <div>

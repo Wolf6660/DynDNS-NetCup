@@ -103,8 +103,3 @@ Wenn du nicht sicher bist, welche Variante du brauchst:
 
 - Nimm `Netcup-Webspace`, wenn dein Docker-Server nicht aus dem Internet erreichbar sein soll
 - Nimm `Docker mit extra API-Port`, wenn die echten Zugangsdaten nur lokal bleiben sollen
-
-## Interne Migration
-
-Der Umzug deiner bestehenden lokalen Datenbank in Docker ist weiterhin moeglich.
-Die dafuer genutzte Anleitung ist absichtlich **nicht** Teil der oeffentlichen Dokumentation.

@@ -14,7 +14,7 @@ register_shutdown_function(function () {
 require __DIR__ . '/../app/netcup_api.php';
 header('Content-Type: text/plain; charset=utf-8');
 
-$zone = 'dyndns-bellheim.de'; // <- fest, damit es sicher stimmt
+$zone = 'example.de'; // <- fest, damit es sicher stimmt
 $host = $_GET['host'] ?? 'testapi';
 $dest = $_GET['dest'] ?? '0.0.0.0';
 

@@ -6,7 +6,7 @@ header('Content-Type: text/plain; charset=utf-8');
 require __DIR__ . '/../app/netcup_api.php';
 $cfg = netcup_cfg();
 
-$zone = 'dyndns-bellheim.de';
+$zone = 'example.de';
 $host = $_GET['host'] ?? 'testapi';
 $dest = $_GET['dest'] ?? '0.0.0.0';
 
