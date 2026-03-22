@@ -1,8 +1,12 @@
 FROM php:8.3-apache
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libcurl4-openssl-dev libsqlite3-dev \
-    && docker-php-ext-install curl pdo_sqlite sqlite3 \
+    && docker-php-ext-install curl \
+    && docker-php-ext-install pdo_sqlite \
+    && docker-php-ext-install sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
