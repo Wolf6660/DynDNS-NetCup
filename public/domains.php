@@ -632,7 +632,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
 <?php endif; ?>
 
 <div class="card">
-  <h3>Netcup A + AAAA anlegen (empfohlen)</h3>
+  <h3>Neue Domain anlegen (empfohlen)</h3>
   <div class="muted" style="margin-bottom:10px;">
     Erstellt direkt einen IPv4- und einen IPv6-Eintrag bei Netcup und erzeugt danach den passenden DynDNS-Token.
   </div>
@@ -657,19 +657,19 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
       </div>
     </div>
     <div style="margin-top:12px;">
-      <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
+      <button class="primary" type="submit">Domain anlegen und Token erzeugen</button>
     </div>
   </form>
 </div>
 
 <div class="card">
-  <h3>Status / Aktualisierung</h3>
+  <h3>Aktuellen Stand abrufen</h3>
   <div class="muted" style="margin-bottom:10px;">
     Liest den aktuellen DNS-Stand von Netcup ein und zeigt dir, welche IP dort momentan wirklich gesetzt ist.
   </div>
   <form method="post" onsubmit="return confirm('Aktuelle DNS-IP von Netcup laden?');">
     <input type="hidden" name="action" value="refresh">
-    <button class="primary" type="submit">Aktualisieren (IP von Netcup holen)</button>
+    <button class="primary" type="submit">Aktuelle IP von Netcup abrufen</button>
   </form>
   <div class="muted" style="margin-top:8px;">
     Hinweis: Für die Aktualisierung wird die Spalte <code>zone</code> benötigt (Netcup-Import setzt sie automatisch).
@@ -684,13 +684,13 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
   </div>
 
   <div class="card" style="margin-bottom:12px;">
-    <h3>Auto-Sync</h3>
+    <h3>Export und Upload</h3>
     <div class="muted" style="margin-bottom:10px;">
       Erstellt die Exportdateien neu und lädt sie zum Zielsystem hoch. Für die Netcup-Webspace-Variante ist das wichtig, wenn du Änderungen sofort veröffentlichen willst.
     </div>
     <form method="post" class="inline" onsubmit="return confirm('Jetzt Auto-Sync ausführen?');">
       <input type="hidden" name="action" value="sync">
-      <button class="primary" type="submit">Sync jetzt</button>
+      <button class="primary" type="submit">Jetzt exportieren und hochladen</button>
     </form>
     <div class="muted" style="margin-top:8px;">
       Tipp: Auto-Sync läuft auch automatisch nach Create/Delete/Rotate.
@@ -698,7 +698,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
   </div>
 
   <div class="card" style="margin-bottom:12px;">
-    <h3>Netcup A-Record anlegen</h3>
+    <h3>Nur IPv4 anlegen</h3>
     <div class="muted" style="margin-bottom:10px;">
       Nur für Sonderfälle, wenn du bewusst ausschließlich einen IPv4-Eintrag ohne IPv6 anlegen willst.
     </div>
@@ -719,7 +719,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         </div>
       </div>
       <div style="margin-top:12px;">
-        <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
+        <button class="primary" type="submit">IPv4-Domain anlegen und Token erzeugen</button>
       </div>
       <div class="muted" style="margin-top:8px;">
         Zone aus <code>base_zone</code>: <code><?= h((string)($cfg['base_zone'] ?? '')) ?></code>
@@ -728,7 +728,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
   </div>
 
   <div class="card" style="margin-bottom:12px;">
-    <h3>Netcup AAAA-Record anlegen (IPv6)</h3>
+    <h3>Nur IPv6 anlegen</h3>
     <div class="muted" style="margin-bottom:10px;">
       Nur für Sonderfälle, wenn du bewusst ausschließlich einen IPv6-Eintrag ohne IPv4 anlegen willst.
     </div>
@@ -749,12 +749,12 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         </div>
       </div>
       <div style="margin-top:12px;">
-        <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
+        <button class="primary" type="submit">IPv6-Domain anlegen und Token erzeugen</button>
       </div>
     </form>
   </div>
 
-  <h3>Neue Subdomain hinzufügen</h3>
+  <h3>Manuell anlegen</h3>
   <div class="muted" style="margin-bottom:10px;">
     Nur für Experten. Damit kannst du einen Eintrag manuell mit bestehender Record-ID anlegen, ohne ihn vorher automatisch bei Netcup erstellen zu lassen.
   </div>
@@ -775,7 +775,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
       </div>
     </div>
     <div style="margin-top:12px;">
-      <button class="primary" type="submit">Anlegen & Token generieren</button>
+      <button class="primary" type="submit">Manuell anlegen und Token erzeugen</button>
     </div>
   </form>
 </details>
