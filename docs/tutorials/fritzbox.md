@@ -1,4 +1,4 @@
-# FRITZ!Box mit externem Script
+# FRITZ!Box DynDNS
 
 Diese Anleitung ist fuer Nutzer einer FRITZ!Box.
 
