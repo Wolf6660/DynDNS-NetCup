@@ -12,13 +12,13 @@ Diese Anleitung ist fuer:
 Mit `curl`:
 
 ```bash
-curl "https://deine-domain.tld/api/update.php?token=DEIN_TOKEN"
+curl -fsS "https://deine-domain.tld/api/update.php?token=DEIN_TOKEN"
 ```
 
 Oder bei Docker mit extra API-Port:
 
 ```bash
-curl "http://DEINE-IP:8081/api/update.php?token=DEIN_TOKEN"
+curl -fsS "http://DEINE-IP:8081/api/update.php?token=DEIN_TOKEN"
 ```
 
 Wenn alles klappt, bekommst du eine Antwort wie:
@@ -48,7 +48,7 @@ Falls dein Geraet ueber IPv6 nach aussen geht und dein Endpunkt die aufrufende I
 Wenn du eine feste IP mitgeben willst:
 
 ```bash
-curl "https://deine-domain.tld/api/update.php?token=DEIN_TOKEN&ip=1.2.3.4"
+curl -fsS "https://deine-domain.tld/api/update.php?token=DEIN_TOKEN&ip=1.2.3.4"
 ```
 
 ## Tipp
