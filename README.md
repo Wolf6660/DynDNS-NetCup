@@ -2,6 +2,41 @@
 
 ## Schnellstart
 
+### Projektdateien auf den Docker-Server kopieren
+
+Es gibt dafuer zwei einfache Wege:
+
+#### Variante 1: Direkt von GitHub klonen
+
+Wenn auf deinem Docker-Server `git` installiert ist, kannst du das Projekt direkt laden:
+
+```bash
+git clone git@github.com:Wolf6660/DynDNS-NetCup.git
+cd DynDNS-NetCup
+```
+
+Falls du lieber HTTPS statt SSH nutzt:
+
+```bash
+git clone https://github.com/Wolf6660/DynDNS-NetCup.git
+cd DynDNS-NetCup
+```
+
+#### Variante 2: ZIP von GitHub herunterladen
+
+Wenn du kein `git` auf dem Server nutzen willst:
+
+1. Repository auf GitHub oeffnen
+2. Auf `Code` klicken
+3. `Download ZIP` waehlen
+4. ZIP-Datei auf deinen Docker-Server oder deine Synology kopieren
+5. Dort in einen Ordner entpacken
+
+Wichtig:
+
+- Danach musst du in den entpackten Projektordner wechseln.
+- Alle folgenden Befehle werden immer in diesem Ordner ausgefuehrt.
+
 1. Beispielkonfiguration kopieren:
 
 ```bash
