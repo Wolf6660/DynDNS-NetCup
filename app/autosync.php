@@ -53,7 +53,9 @@ function autosync_now(SQLite3 $db): array
         SELECT
             id, fqdn, record_id, token_hash, active,
             last_ip, last_update, note,
-            zone, hostname, record_type
+            zone, hostname, record_type,
+            COALESCE(record_id_a, 0) AS record_id_a,
+            COALESCE(record_id_aaaa, 0) AS record_id_aaaa
         FROM domains
         ORDER BY fqdn ASC
     ");
@@ -72,6 +74,8 @@ function autosync_now(SQLite3 $db): array
             'zone'       => (string)($row['zone'] ?? ''),
             'hostname'   => (string)($row['hostname'] ?? ''),
             'record_type'=> (string)($row['record_type'] ?? 'A'),
+            'record_id_a' => (int)($row['record_id_a'] ?? 0),
+            'record_id_aaaa' => (int)($row['record_id_aaaa'] ?? 0),
         ];
     }
 

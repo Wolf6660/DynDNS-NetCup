@@ -25,3 +25,4 @@ dyndns_config.json
 app/config.local.php
 app/netcup_config.local.php
 app/upload_config.local.php
+MIGRATION.local.md

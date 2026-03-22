@@ -116,6 +116,7 @@ $db = db();
 $flash = null;
 $newToken = null;
 $shownToken = null;
+$cfg = require __DIR__ . '/../app/config.php';
 
 $action = (string)($_POST['action'] ?? '');
 
@@ -333,7 +334,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
 
             if ($action === 'delete') {
                 $stmt = $db->prepare("
-                    SELECT fqdn, record_id, zone
+                    SELECT fqdn, record_id, zone,
+                           COALESCE(record_id_a, 0) AS record_id_a,
+                           COALESCE(record_id_aaaa, 0) AS record_id_aaaa
                     FROM domains
                     WHERE id = :id
                 ");
@@ -343,15 +346,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
                 if (!$row) throw new RuntimeException("Eintrag nicht gefunden.");
 
                 $zone = (string)($row['zone'] ?? '');
-                $recordId = (int)($row['record_id'] ?? 0);
+                $recordIds = [];
+                foreach ([
+                    (int)($row['record_id'] ?? 0),
+                    (int)($row['record_id_a'] ?? 0),
+                    (int)($row['record_id_aaaa'] ?? 0),
+                ] as $rid) {
+                    if ($rid > 0 && !in_array($rid, $recordIds, true)) {
+                        $recordIds[] = $rid;
+                    }
+                }
 
-                if ($zone === '' || $recordId <= 0) {
+                if ($zone === '' || count($recordIds) === 0) {
                     throw new RuntimeException("Zone oder Record-ID fehlt – Netcup-Löschung nicht möglich.");
                 }
 
                 $sid = netcup_login();
                 try {
-                    netcup_delete_dns_record($sid, $zone, $recordId);
+                    foreach ($recordIds as $recordId) {
+                        netcup_delete_dns_record($sid, $zone, $recordId);
+                    }
                 } finally {
                     netcup_logout($sid);
                 }
@@ -423,13 +437,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
 
                 if (!$row) throw new RuntimeException("Eintrag nicht gefunden.");
                 if (($row['token_enc'] ?? '') === '') throw new RuntimeException("Kein Token gespeichert (token_enc leer). Erst 'Token erneuern' drücken.");
+                if (empty($cfg['update_url'])) throw new RuntimeException("DYNDNS_UPDATE_URL fehlt in der Konfiguration.");
 
                 $token = decrypt_token_local($row['token_enc']);
-
-                $type = strtolower(trim((string)($_POST['type'] ?? 'a')));
-                if (!in_array($type, ['a','aaaa','both'], true)) $type = 'a';
-
-                $url = "https://dyndns-bellheim.de/api/update.php?token=" . urlencode($token) . "&type=" . urlencode($type);
+                $separator = str_contains((string)$cfg['update_url'], '?') ? '&' : '?';
+                $url = (string)$cfg['update_url'] . $separator . 'token=' . urlencode($token);
 
                 $ch = curl_init($url);
                 curl_setopt_array($ch, [
@@ -448,9 +460,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
                 if (strlen($short) > 220) $short = substr($short, 0, 220) . '...';
 
                 if ($code >= 200 && $code < 300) {
-                    $flash = ['type' => 'ok', 'msg' => "Test OK ({$row['fqdn']}, type=$type) HTTP $code: $short"];
+                    $flash = ['type' => 'ok', 'msg' => "Test OK ({$row['fqdn']}) HTTP $code: $short"];
                 } else {
-                    $flash = ['type' => 'error', 'msg' => "Test FEHLER ({$row['fqdn']}, type=$type) HTTP $code: $short"];
+                    $flash = ['type' => 'error', 'msg' => "Test FEHLER ({$row['fqdn']}) HTTP $code: $short"];
                 }
             }
         }
@@ -470,7 +482,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_domain'])) {
     $recordId = trim((string)($_POST['record_id'] ?? ''));
     $note = trim((string)($_POST['note'] ?? ''));
 
-    $cfg = require __DIR__ . '/../app/config.php';
     $baseZone = trim((string)($cfg['base_zone'] ?? ''));
 
     if ($input === '') {
@@ -579,6 +590,23 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
 
 <h2>DynDNS Admin – Domains</h2>
 
+<div class="card">
+  <h3>Konfiguration</h3>
+  <div class="row">
+    <div>
+      <label>Base-Zone</label>
+      <code><?= h((string)($cfg['base_zone'] ?? '')) ?: 'nicht gesetzt' ?></code>
+    </div>
+    <div>
+      <label>DynDNS Update-URL</label>
+      <code><?= h((string)($cfg['update_url'] ?? '')) ?: 'nicht gesetzt' ?></code>
+    </div>
+  </div>
+  <div class="muted" style="margin-top:8px;">
+    Die Update-URL wird für die Test-Funktion verwendet. Je nach Betriebsart trägst du hier entweder deinen Netcup-Webspace-Link oder die Docker-API-URL ein.
+  </div>
+</div>
+
 <?php if ($flash): ?>
   <div class="<?= ($flash['type'] === 'ok') ? 'flash-ok' : 'flash-err' ?>">
     <?= h($flash['msg']) ?>
@@ -632,7 +660,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
       <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
     </div>
     <div class="muted" style="margin-top:8px;">
-      Zone aus <code>base_zone</code>: <code><?= h((require __DIR__ . '/../app/config.php')['base_zone'] ?? '') ?></code>
+      Zone aus <code>base_zone</code>: <code><?= h((string)($cfg['base_zone'] ?? '')) ?></code>
     </div>
   </form>
 </div>
@@ -786,15 +814,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
               <form class="inline" method="post" onsubmit="return confirm('Test ausführen? (ruft Netcup-Update-Endpoint auf)');">
                 <input type="hidden" name="action" value="test">
                 <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
-                <input type="hidden" name="type" value="a">
-                <button class="warn" type="submit">Test IPv4</button>
-              </form>
-
-              <form class="inline" method="post" onsubmit="return confirm('Test ausführen? (ruft Netcup-Update-Endpoint auf)');">
-                <input type="hidden" name="action" value="test">
-                <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
-                <input type="hidden" name="type" value="aaaa">
-                <button class="warn" type="submit">Test IPv6</button>
+                <button class="warn" type="submit">Update testen</button>
               </form>
 
               <form class="inline" method="post"

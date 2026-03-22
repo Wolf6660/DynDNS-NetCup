@@ -4,7 +4,9 @@ require_once __DIR__ . '/helpers.php';
 
 function build_export_payload(SQLite3 $db): array {
     $res = $db->query("
-        SELECT fqdn, record_id, token_hash, active
+        SELECT fqdn, record_id, token_hash, active, zone, hostname, record_type,
+               COALESCE(record_id_a, 0) AS record_id_a,
+               COALESCE(record_id_aaaa, 0) AS record_id_aaaa
         FROM domains
         WHERE active = 1
         ORDER BY fqdn ASC
@@ -17,6 +19,11 @@ function build_export_payload(SQLite3 $db): array {
             'record_id' => $row['record_id'],
             'token_sha256' => $row['token_hash'],
             'active' => true,
+            'zone' => (string)($row['zone'] ?? ''),
+            'hostname' => (string)($row['hostname'] ?? ''),
+            'record_type' => (string)($row['record_type'] ?? 'A'),
+            'record_id_a' => (int)($row['record_id_a'] ?? 0),
+            'record_id_aaaa' => (int)($row['record_id_aaaa'] ?? 0),
         ];
     }
 
