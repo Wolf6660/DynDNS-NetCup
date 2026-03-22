@@ -99,6 +99,33 @@ Moegliche Werte:
 - `netcup_webspace` = Update ueber Dateien auf dem Netcup-Webspace
 - `local_api` = Update direkt ueber Docker auf extra API-Port
 
+## Wofuer ist `DYNDNS_UPDATE_URL`?
+
+`DYNDNS_UPDATE_URL` ist optional.
+
+Sie wird nur fuer die Test-Funktion im Webinterface verwendet.
+Wenn du in der Admin-Oberflaeche auf `Update testen` klickst, wird diese URL mit dem passenden Token aufgerufen.
+
+Beispiele:
+
+```env
+# Netcup-Webspace
+DYNDNS_UPDATE_URL=https://deine-domain.tld/api/update.php
+
+# Lokale Docker-API
+DYNDNS_UPDATE_URL=http://IP-Docker-Server:24081/api/update.php
+```
+
+Wichtig:
+
+- Dort wird **kein** Token fest eingetragen
+- Das Webinterface haengt den Token beim Test automatisch an
+
+Hinweis:
+
+- Bei `local_api` kann man diese URL meist leicht aus Server-IP und `API_PORT` ableiten
+- Bei `netcup_webspace` sollte hier die echte oeffentliche Update-URL eingetragen werden
+
 ## Wo ist das Webinterface?
 
 Das Admin-Webinterface ist immer hier:
