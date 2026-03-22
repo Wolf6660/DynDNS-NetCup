@@ -8,6 +8,10 @@ export/*
 !export/.gitkeep
 runtime/*
 !runtime/.gitkeep
+!runtime/data/
+!runtime/data/.gitkeep
+!runtime/export/
+!runtime/export/.gitkeep
 docker-import/*
 !docker-import/.gitkeep
 
