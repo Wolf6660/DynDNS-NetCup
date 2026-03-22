@@ -1,0 +1,27 @@
+.DS_Store
+.env
+.env.local
+
+data/*
+!data/.gitkeep
+export/*
+!export/.gitkeep
+runtime/*
+!runtime/.gitkeep
+docker-import/*
+!docker-import/.gitkeep
+
+NetCup Server/data/*
+!NetCup Server/data/.gitkeep
+NetCup Server/export/*
+!NetCup Server/export/.gitkeep
+
+*.sqlite
+*.log
+*.sig
+dyndns_config.json
+
+# local secrets and scratch files
+app/config.local.php
+app/netcup_config.local.php
+app/upload_config.local.php

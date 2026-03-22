@@ -1,0 +1,19 @@
+services:
+  dyndns:
+    build:
+      context: .
+    container_name: dyndns-admin
+    ports:
+      - "${APP_PORT:-8080}:80"
+    env_file:
+      - .env
+    environment:
+      APP_DATA_DIR: /var/www/html/data
+      APP_EXPORT_DIR: /var/www/html/export
+      APP_DB_PATH: /var/www/html/data/dyndns.sqlite
+      IMPORT_DB_FROM: /import/dyndns.sqlite
+    volumes:
+      - ./runtime/data:/var/www/html/data
+      - ./runtime/export:/var/www/html/export
+      - ./docker-import:/import:ro
+    restart: unless-stopped
