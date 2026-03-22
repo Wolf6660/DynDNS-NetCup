@@ -93,6 +93,7 @@ function ensure_domains_schema(SQLite3 $db): void
         'token_enc' => 'ALTER TABLE domains ADD COLUMN token_enc TEXT',
         'record_id_a' => 'ALTER TABLE domains ADD COLUMN record_id_a INTEGER',
         'record_id_aaaa' => 'ALTER TABLE domains ADD COLUMN record_id_aaaa INTEGER',
+        'provider_synced_at' => 'ALTER TABLE domains ADD COLUMN provider_synced_at TEXT',
     ];
 
     foreach ($wantedColumns as $column => $sql) {
@@ -101,4 +102,3 @@ function ensure_domains_schema(SQLite3 $db): void
         }
     }
 }
-

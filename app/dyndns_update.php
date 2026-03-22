@@ -141,6 +141,25 @@ function dyndns_update_record(array $domain, string $ip): void
     }
 }
 
+function dyndns_mark_local_update(array $domain, string $ip): void
+{
+    if (!isset($domain['fqdn'])) {
+        return;
+    }
+
+    $db = db();
+    $stmt = $db->prepare("
+        UPDATE domains
+        SET last_ip = :ip,
+            last_update = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE fqdn = :fqdn
+    ");
+    $stmt->bindValue(':ip', $ip, SQLITE3_TEXT);
+    $stmt->bindValue(':fqdn', (string)$domain['fqdn'], SQLITE3_TEXT);
+    $stmt->execute();
+}
+
 function handle_dyndns_update_request(string $jsonFile, string $sigFile, string $signingSecret): void
 {
     $token = (string)($_GET['token'] ?? '');
@@ -157,6 +176,7 @@ function handle_dyndns_update_request(string $jsonFile, string $sigFile, string 
 
         $ip = dyndns_client_ip();
         dyndns_update_record($domain, $ip);
+        dyndns_mark_local_update($domain, $ip);
 
         header('Content-Type: text/plain; charset=utf-8');
         echo 'OK ' . ($domain['fqdn'] ?? 'domain') . ' updated to ' . $ip;

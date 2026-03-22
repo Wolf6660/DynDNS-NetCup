@@ -98,7 +98,7 @@ function refresh_current_ips_from_netcup(): array {
         $stmt = $db->prepare("
             UPDATE domains
             SET last_ip = :ip,
-                last_update = CURRENT_TIMESTAMP,
+                provider_synced_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = :id
         ");
@@ -543,6 +543,7 @@ $res = $db->query('
            COALESCE(record_id_a, 0)    AS record_id_a,
            COALESCE(record_id_aaaa, 0) AS record_id_aaaa,
            active, last_ip, last_update, created_at,
+           COALESCE(provider_synced_at, "") AS provider_synced_at,
            COALESCE(updated_at, "") AS updated_at,
            COALESCE(note, "") AS note,
            COALESCE(zone, "") AS zone
@@ -674,6 +675,14 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
   <div class="muted" style="margin-top:8px;">
     Hinweis: Für die Aktualisierung wird die Spalte <code>zone</code> benötigt (Netcup-Import setzt sie automatisch).
   </div>
+  <div class="muted" style="margin-top:6px;">
+    DynDNS-Modus:
+    <?php if (($cfg['dyndns_mode'] ?? '') === 'local_api'): ?>
+      Echte Client-Updates werden separat erkannt und unter <code>Letzte DynDNS-Aktualisierung</code> angezeigt.
+    <?php else: ?>
+      In der Webspace-Variante kann das System echte Client-Aufrufe nicht direkt sehen. <code>Letzte DynDNS-Aktualisierung</code> bleibt deshalb nur bei lokalen Tests oder lokaler API aussagekräftig.
+    <?php endif; ?>
+  </div>
 </div>
 
 <details class="card">
@@ -793,7 +802,8 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
           <th>FQDN</th>
           <th>Record-IDs</th>
           <th>Letzte IP</th>
-          <th>Letztes Update</th>
+          <th>Letzte DynDNS-Aktualisierung</th>
+          <th>Zuletzt mit Netcup abgeglichen</th>
           <th>Zone</th>
           <th>Notiz</th>
           <th>Aktionen</th>
@@ -816,6 +826,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
             </td>
             <td><?= h($d['last_ip'] ?? '') ?></td>
             <td><?= h($d['last_update'] ?? '') ?></td>
+            <td><?= h($d['provider_synced_at'] ?? '') ?></td>
             <td><?= h($d['zone'] ?? '') ?></td>
             <td><?= h($d['note'] ?? '') ?></td>
             <td>
