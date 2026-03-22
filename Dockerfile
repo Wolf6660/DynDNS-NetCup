@@ -4,9 +4,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libcurl4-openssl-dev libsqlite3-dev \
+    && docker-php-source extract \
     && docker-php-ext-install curl \
     && docker-php-ext-install pdo_sqlite \
+    && if [ -f /usr/src/php/ext/sqlite3/config0.m4 ] && [ ! -f /usr/src/php/ext/sqlite3/config.m4 ]; then cp /usr/src/php/ext/sqlite3/config0.m4 /usr/src/php/ext/sqlite3/config.m4; fi \
     && docker-php-ext-install sqlite3 \
+    && docker-php-source delete \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
