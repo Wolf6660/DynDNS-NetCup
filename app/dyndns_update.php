@@ -73,7 +73,27 @@ function dyndns_find_domain_by_token(array $config, string $token): ?array
 
 function dyndns_client_ip(): string
 {
+    $config = require __DIR__ . '/config.php';
+
     $ip = $_GET['ip'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+
+    if (!empty($config['trust_proxy_headers'])) {
+        $forwardedFor = trim((string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+        $realIp = trim((string)($_SERVER['HTTP_X_REAL_IP'] ?? ''));
+
+        if ($forwardedFor !== '') {
+            foreach (explode(',', $forwardedFor) as $candidate) {
+                $candidate = trim($candidate);
+                if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                    $ip = $candidate;
+                    break;
+                }
+            }
+        } elseif ($realIp !== '' && filter_var($realIp, FILTER_VALIDATE_IP)) {
+            $ip = $realIp;
+        }
+    }
+
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
         throw new RuntimeException('invalid ip');
     }

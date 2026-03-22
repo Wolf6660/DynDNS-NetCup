@@ -47,6 +47,7 @@ APP_TOKEN_MASTER_KEY=bitte-auch-lang-und-zufaellig-waehlen
 APP_BASE_ZONE=deine-domain.de
 DYNDNS_MODE=netcup_webspace
 DYNDNS_UPDATE_URL=
+TRUST_PROXY_HEADERS=false
 
 NETCUP_CUSTOMER_NUMBER=123456
 NETCUP_API_KEY=dein-api-key
@@ -125,6 +126,23 @@ Hinweis:
 
 - Bei `local_api` kann man diese URL meist leicht aus Server-IP und `API_PORT` ableiten
 - Bei `netcup_webspace` sollte hier die echte oeffentliche Update-URL eingetragen werden
+
+## Reverse Proxy und echte WAN-IP
+
+Wenn dein DynDNS-Aufruf ueber einen Reverse Proxy laeuft, sieht das Backend sonst oft nur die interne Proxy-IP statt deiner echten WAN-IP.
+
+Dafuer gibt es in der `.env` diesen Schalter:
+
+```env
+TRUST_PROXY_HEADERS=true
+```
+
+Dann wertet die lokale Docker-API die Header `X-Forwarded-For` und `X-Real-IP` aus.
+
+Wichtig:
+
+- Nur aktivieren, wenn wirklich ein vertrauenswuerdiger Reverse Proxy davor sitzt
+- Alternativ kann ein Client die IP auch direkt mit `?ip=` uebergeben
 
 ## Wo ist das Webinterface?
 

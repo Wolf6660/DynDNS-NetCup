@@ -11,4 +11,5 @@ return [
     'base_zone' => app_env('APP_BASE_ZONE', ''),
     'dyndns_mode' => app_env('DYNDNS_MODE', 'netcup_webspace'),
     'update_url' => app_env('DYNDNS_UPDATE_URL', ''),
+    'trust_proxy_headers' => app_env_bool('TRUST_PROXY_HEADERS', false),
 ];

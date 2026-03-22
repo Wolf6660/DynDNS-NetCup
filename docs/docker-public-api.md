@@ -31,6 +31,7 @@ APP_TOKEN_MASTER_KEY=bitte-auch-lang-und-zufaellig-waehlen
 APP_BASE_ZONE=deine-domain.de
 DYNDNS_MODE=local_api
 DYNDNS_UPDATE_URL=http://IP-Docker-Server:8081/api/update.php
+TRUST_PROXY_HEADERS=false
 
 NETCUP_CUSTOMER_NUMBER=123456
 NETCUP_API_KEY=dein-api-key
@@ -47,6 +48,16 @@ Danach gilt:
 
 - Admin-Webinterface intern: `http://IP-Docker-Server:8080`
 - Oeffentliche API: `http://IP-Docker-Server:8081/api/update.php?token=DEIN_TOKEN`
+
+## Reverse Proxy
+
+Wenn du vor die lokale API noch einen Reverse Proxy schaltest und die echte WAN-IP ueber Header weitergereicht wird, setze:
+
+```env
+TRUST_PROXY_HEADERS=true
+```
+
+Dann wird statt der internen Proxy-IP die weitergereichte Client-IP verwendet.
 
 ## 3. Router und Firewall
 
