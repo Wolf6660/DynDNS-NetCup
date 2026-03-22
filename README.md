@@ -91,6 +91,12 @@ Das Admin-Webinterface ist immer hier:
 
 - `http://IP-Docker-Server:8080`
 
+## Tutorials fuer DynDNS-Clients
+
+Wenn du spaeter wissen willst, wie Router, NAS oder Linux-Systeme den DynDNS-Link automatisch aufrufen koennen, findest du hier passende Beispiele:
+
+- [Tutorial-Uebersicht](docs/tutorials/README.md)
+
 ## Wichtiger Hinweis fuer Anfaenger
 
 Wenn du nicht sicher bist, welche Variante du brauchst:
