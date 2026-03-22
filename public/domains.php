@@ -632,69 +632,10 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
 <?php endif; ?>
 
 <div class="card">
-  <h3>Auto-Sync</h3>
-  <form method="post" class="inline" onsubmit="return confirm('Jetzt Auto-Sync ausführen?');">
-    <input type="hidden" name="action" value="sync">
-    <button class="primary" type="submit">Sync jetzt</button>
-  </form>
-  <div class="muted" style="margin-top:8px;">
-    Tipp: Auto-Sync läuft auch automatisch nach Create/Delete/Rotate.
-  </div>
-</div>
-
-<div class="card">
-  <h3>Netcup A-Record anlegen</h3>
-  <form method="post" onsubmit="return confirm('A-Record bei Netcup anlegen?');">
-    <input type="hidden" name="action" value="create_netcup_a">
-    <div class="row">
-      <div>
-        <label>Host (nur vorne, z.B. test)</label>
-        <input name="host" placeholder="test" required>
-      </div>
-      <div>
-        <label>Start-IP (IPv4, z.B. 0.0.0.0)</label>
-        <input name="dest" placeholder="0.0.0.0" value="0.0.0.0" required>
-      </div>
-      <div>
-        <label>Notiz (optional)</label>
-        <input name="note" placeholder="z.B. FritzBox Büro">
-      </div>
-    </div>
-    <div style="margin-top:12px;">
-      <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
-    </div>
-    <div class="muted" style="margin-top:8px;">
-      Zone aus <code>base_zone</code>: <code><?= h((string)($cfg['base_zone'] ?? '')) ?></code>
-    </div>
-  </form>
-</div>
-
-<div class="card">
-  <h3>Netcup AAAA-Record anlegen (IPv6)</h3>
-  <form method="post" onsubmit="return confirm('AAAA-Record bei Netcup anlegen?');">
-    <input type="hidden" name="action" value="create_netcup_aaaa">
-    <div class="row">
-      <div>
-        <label>Host (nur vorne, z.B. test)</label>
-        <input name="host" placeholder="test" required>
-      </div>
-      <div>
-        <label>Start-IP (IPv6, z.B. ::)</label>
-        <input name="dest" placeholder="::" value="::" required>
-      </div>
-      <div>
-        <label>Notiz (optional)</label>
-        <input name="note" placeholder="z.B. UniFi IPv6">
-      </div>
-    </div>
-    <div style="margin-top:12px;">
-      <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
-    </div>
-  </form>
-</div>
-
-<div class="card">
   <h3>Netcup A + AAAA anlegen (empfohlen)</h3>
+  <div class="muted" style="margin-bottom:10px;">
+    Erstellt direkt einen IPv4- und einen IPv6-Eintrag bei Netcup und erzeugt danach den passenden DynDNS-Token.
+  </div>
   <form method="post" onsubmit="return confirm('A und AAAA bei Netcup anlegen?');">
     <input type="hidden" name="action" value="create_netcup_both">
     <div class="row">
@@ -723,6 +664,9 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
 
 <div class="card">
   <h3>Status / Aktualisierung</h3>
+  <div class="muted" style="margin-bottom:10px;">
+    Liest den aktuellen DNS-Stand von Netcup ein und zeigt dir, welche IP dort momentan wirklich gesetzt ist.
+  </div>
   <form method="post" onsubmit="return confirm('Aktuelle DNS-IP von Netcup laden?');">
     <input type="hidden" name="action" value="refresh">
     <button class="primary" type="submit">Aktualisieren (IP von Netcup holen)</button>
@@ -733,9 +677,87 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
 </div>
 
 <details class="card">
-  <summary><strong>Manuell anlegen (Experten)</strong></summary>
+  <summary><strong>Erweitert</strong></summary>
+
+  <div class="muted" style="margin:10px 0 14px 0;">
+    Diese Funktionen brauchst du nur in Sonderfällen, für Wartung oder wenn du bewusst von der Standardanlage abweichen willst.
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Auto-Sync</h3>
+    <div class="muted" style="margin-bottom:10px;">
+      Erstellt die Exportdateien neu und lädt sie zum Zielsystem hoch. Für die Netcup-Webspace-Variante ist das wichtig, wenn du Änderungen sofort veröffentlichen willst.
+    </div>
+    <form method="post" class="inline" onsubmit="return confirm('Jetzt Auto-Sync ausführen?');">
+      <input type="hidden" name="action" value="sync">
+      <button class="primary" type="submit">Sync jetzt</button>
+    </form>
+    <div class="muted" style="margin-top:8px;">
+      Tipp: Auto-Sync läuft auch automatisch nach Create/Delete/Rotate.
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Netcup A-Record anlegen</h3>
+    <div class="muted" style="margin-bottom:10px;">
+      Nur für Sonderfälle, wenn du bewusst ausschließlich einen IPv4-Eintrag ohne IPv6 anlegen willst.
+    </div>
+    <form method="post" onsubmit="return confirm('A-Record bei Netcup anlegen?');">
+      <input type="hidden" name="action" value="create_netcup_a">
+      <div class="row">
+        <div>
+          <label>Host (nur vorne, z.B. test)</label>
+          <input name="host" placeholder="test" required>
+        </div>
+        <div>
+          <label>Start-IP (IPv4, z.B. 0.0.0.0)</label>
+          <input name="dest" placeholder="0.0.0.0" value="0.0.0.0" required>
+        </div>
+        <div>
+          <label>Notiz (optional)</label>
+          <input name="note" placeholder="z.B. FritzBox Büro">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
+      </div>
+      <div class="muted" style="margin-top:8px;">
+        Zone aus <code>base_zone</code>: <code><?= h((string)($cfg['base_zone'] ?? '')) ?></code>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Netcup AAAA-Record anlegen (IPv6)</h3>
+    <div class="muted" style="margin-bottom:10px;">
+      Nur für Sonderfälle, wenn du bewusst ausschließlich einen IPv6-Eintrag ohne IPv4 anlegen willst.
+    </div>
+    <form method="post" onsubmit="return confirm('AAAA-Record bei Netcup anlegen?');">
+      <input type="hidden" name="action" value="create_netcup_aaaa">
+      <div class="row">
+        <div>
+          <label>Host (nur vorne, z.B. test)</label>
+          <input name="host" placeholder="test" required>
+        </div>
+        <div>
+          <label>Start-IP (IPv6, z.B. ::)</label>
+          <input name="dest" placeholder="::" value="::" required>
+        </div>
+        <div>
+          <label>Notiz (optional)</label>
+          <input name="note" placeholder="z.B. UniFi IPv6">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="primary" type="submit">Bei Netcup anlegen + Token erzeugen</button>
+      </div>
+    </form>
+  </div>
 
   <h3>Neue Subdomain hinzufügen</h3>
+  <div class="muted" style="margin-bottom:10px;">
+    Nur für Experten. Damit kannst du einen Eintrag manuell mit bestehender Record-ID anlegen, ohne ihn vorher automatisch bei Netcup erstellen zu lassen.
+  </div>
   <form method="post">
     <input type="hidden" name="create_domain" value="1">
     <div class="row">
