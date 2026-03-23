@@ -12,4 +12,5 @@ return [
     'dyndns_mode' => app_env('DYNDNS_MODE', 'netcup_webspace'),
     'update_url' => app_env('DYNDNS_UPDATE_URL', ''),
     'trust_proxy_headers' => app_env_bool('TRUST_PROXY_HEADERS', false),
+    'debug_ip_endpoint' => app_env_bool('DEBUG_IP_ENDPOINT', false),
 ];

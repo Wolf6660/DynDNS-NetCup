@@ -73,6 +73,12 @@ function dyndns_find_domain_by_token(array $config, string $token): ?array
 
 function dyndns_client_ip(): string
 {
+    $details = dyndns_client_ip_details();
+    return $details['selected_ip'];
+}
+
+function dyndns_client_ip_details(): array
+{
     $config = require __DIR__ . '/config.php';
 
     $manualIp = trim((string)($_GET['ip'] ?? ''));
@@ -81,7 +87,18 @@ function dyndns_client_ip(): string
             throw new RuntimeException('invalid ip');
         }
 
-        return $manualIp;
+        return [
+            'selected_ip' => $manualIp,
+            'manual_ip' => $manualIp,
+            'remote_addr' => trim((string)($_SERVER['REMOTE_ADDR'] ?? '')),
+            'forwarded' => trim((string)($_SERVER['HTTP_FORWARDED'] ?? '')),
+            'x_forwarded_for' => trim((string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')),
+            'x_real_ip' => trim((string)($_SERVER['HTTP_X_REAL_IP'] ?? '')),
+            'true_client_ip' => trim((string)($_SERVER['HTTP_TRUE_CLIENT_IP'] ?? '')),
+            'cf_connecting_ip' => trim((string)($_SERVER['HTTP_CF_CONNECTING_IP'] ?? '')),
+            'candidates' => [$manualIp],
+            'valid_candidates' => [$manualIp],
+        ];
     }
 
     $candidates = [];
@@ -118,12 +135,23 @@ function dyndns_client_ip(): string
         }
     }
 
-    $ip = dyndns_pick_best_ip($candidates);
+    [$ip, $validIps] = dyndns_pick_best_ip($candidates);
     if ($ip === null) {
         throw new RuntimeException('invalid ip');
     }
 
-    return $ip;
+    return [
+        'selected_ip' => $ip,
+        'manual_ip' => '',
+        'remote_addr' => $remoteAddr,
+        'forwarded' => trim((string)($_SERVER['HTTP_FORWARDED'] ?? '')),
+        'x_forwarded_for' => trim((string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')),
+        'x_real_ip' => trim((string)($_SERVER['HTTP_X_REAL_IP'] ?? '')),
+        'true_client_ip' => trim((string)($_SERVER['HTTP_TRUE_CLIENT_IP'] ?? '')),
+        'cf_connecting_ip' => trim((string)($_SERVER['HTTP_CF_CONNECTING_IP'] ?? '')),
+        'candidates' => $candidates,
+        'valid_candidates' => $validIps,
+    ];
 }
 
 function dyndns_ips_from_forwarded_header(string $header): array
@@ -142,7 +170,7 @@ function dyndns_ips_from_forwarded_header(string $header): array
     return $ips;
 }
 
-function dyndns_pick_best_ip(array $candidates): ?string
+function dyndns_pick_best_ip(array $candidates): array
 {
     $validIps = [];
     foreach ($candidates as $candidate) {
@@ -155,16 +183,16 @@ function dyndns_pick_best_ip(array $candidates): ?string
     }
 
     if ($validIps === []) {
-        return null;
+        return [null, []];
     }
 
     foreach ($validIps as $candidate) {
         if (filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-            return $candidate;
+            return [$candidate, $validIps];
         }
     }
 
-    return $validIps[0];
+    return [$validIps[0], $validIps];
 }
 
 function dyndns_target_record_ids(array $domain, string $ip): array
