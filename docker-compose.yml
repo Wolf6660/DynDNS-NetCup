@@ -13,6 +13,7 @@ services:
       APP_DB_PATH: /var/www/html/data/dyndns.sqlite
       IMPORT_DB_FROM: /import/dyndns.sqlite
       APACHE_DOCUMENT_ROOT: /var/www/html/public
+      ENABLE_DOCKER_WAN_WORKER: "true"
     volumes:
       - ./runtime/data:/var/www/html/data
       - ./runtime/export:/var/www/html/export
@@ -34,6 +35,7 @@ services:
       APP_EXPORT_DIR: /var/www/html/export
       APP_DB_PATH: /var/www/html/data/dyndns.sqlite
       APACHE_DOCUMENT_ROOT: /var/www/html/public_api
+      ENABLE_DOCKER_WAN_WORKER: "false"
     volumes:
       - ./runtime/data:/var/www/html/data
       - ./runtime/export:/var/www/html/export
