@@ -89,12 +89,6 @@ Der spaetere Aufruf sieht dann so aus:
 http://IP-Docker-Server:8081/api/update.php?token=DEIN_TOKEN
 ```
 
-Optional mit fester IP:
-
-```text
-http://IP-Docker-Server:8081/api/update.php?token=DEIN_TOKEN&ip=1.2.3.4
-```
-
 ## Fuer wen ist diese Variante gut?
 
 - Wenn die echten Netcup-Zugangsdaten nur lokal bleiben sollen

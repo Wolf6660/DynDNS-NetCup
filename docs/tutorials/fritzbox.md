@@ -22,19 +22,18 @@ Dann:
 Trage als Update-URL am besten dieses Format ein:
 
 ```text
-https://dyndns-domain.de/api/update.php?token=DEINTOKEN&ip=<ipaddr>
+https://dyndns-domain.de/api/update.php?token=DEINTOKEN
 ```
 
 Oder bei Docker mit extra API-Port:
 
 ```text
-http://DEINE-IP:8081/api/update.php?token=DEINTOKEN&ip=<ipaddr>
+http://DEINE-IP:8081/api/update.php?token=DEINTOKEN
 ```
 
 Wichtig:
 
 - `DEINTOKEN` musst du durch deinen echten Token ersetzen
-- `<ipaddr>` ist der Platzhalter der FRITZ!Box fuer die aktuelle externe IP
 - `type=a` wird fuer dieses Projekt nicht benoetigt
 
 ### Benutzername und Passwort

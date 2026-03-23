@@ -142,7 +142,6 @@ Dann wertet die lokale Docker-API die Header `X-Forwarded-For` und `X-Real-IP` a
 Wichtig:
 
 - Nur aktivieren, wenn wirklich ein vertrauenswuerdiger Reverse Proxy davor sitzt
-- Alternativ kann ein Client die IP auch direkt mit `?ip=` uebergeben
 
 ## Wo ist das Webinterface?
 

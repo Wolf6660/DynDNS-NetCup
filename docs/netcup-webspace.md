@@ -130,12 +130,6 @@ Der spaetere Aufruf sieht dann so aus:
 https://deine-domain.tld/api/update.php?token=DEIN_TOKEN
 ```
 
-Optional mit fester IP:
-
-```text
-https://deine-domain.tld/api/update.php?token=DEIN_TOKEN&ip=1.2.3.4
-```
-
 ## Fuer wen ist diese Variante gut?
 
 - Wenn deine Synology nicht von aussen erreichbar sein soll

@@ -45,12 +45,6 @@ Beispiel: alle 10 Minuten ausfuehren
 
 Falls dein Geraet ueber IPv6 nach aussen geht und dein Endpunkt die aufrufende IP direkt verwenden soll, reicht derselbe Aufruf.
 
-Wenn du eine feste IP mitgeben willst:
-
-```bash
-curl -fsS "https://deine-domain.tld/api/update.php?token=DEIN_TOKEN&ip=1.2.3.4"
-```
-
 ## Tipp
 
 Starte immer zuerst mit dem einmaligen Test.
