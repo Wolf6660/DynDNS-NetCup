@@ -35,7 +35,7 @@ register_shutdown_function(function () {
 });
 
 require_once __DIR__ . '/../app/helpers.php';
-require __DIR__ . '/../app/netcup_api.php';
+require_once __DIR__ . '/../app/netcup_api.php';
 
 // -------------------- Refresh DNS IPs from Netcup --------------------
 function refresh_current_ips_from_netcup(): array {
