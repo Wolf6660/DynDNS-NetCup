@@ -5,6 +5,7 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/../app/autosync.php';
+require_once __DIR__ . '/../app/dyndns_update.php';
 define('ENABLE_MANUAL_CREATE', false);
 
 // -------------------- Auto-Sync Wrapper --------------------
@@ -111,6 +112,72 @@ function refresh_current_ips_from_netcup(): array {
     return ['updated' => $updated, 'skipped' => $skipped, 'note' => 'OK'];
 }
 
+function fetch_public_wan_ipv4(): string {
+    $cfg = require __DIR__ . '/../app/config.php';
+    $url = trim((string)($cfg['wan_ip_lookup_url'] ?? 'https://api.ipify.org'));
+    if ($url === '') {
+        throw new RuntimeException('WAN_IP_LOOKUP_URL fehlt in der Konfiguration.');
+    }
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_HTTPHEADER => ['Accept: text/plain'],
+        CURLOPT_USERAGENT => 'DockerDynDNS/1.0',
+    ]);
+    $body = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($body === false) {
+        throw new RuntimeException("WAN-IP-Abfrage fehlgeschlagen: $err");
+    }
+
+    $ip = trim((string)$body);
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        throw new RuntimeException("WAN-IP-Abfrage lieferte keine gueltige IPv4: $ip");
+    }
+
+    return $ip;
+}
+
+function refresh_marked_domains_from_wan(): array {
+    $db = db();
+    $wanIp = fetch_public_wan_ipv4();
+
+    $res = $db->query("
+        SELECT id, fqdn, record_id, COALESCE(zone, '') AS zone,
+               COALESCE(record_type, '') AS record_type,
+               COALESCE(record_id_a, 0) AS record_id_a,
+               COALESCE(record_id_aaaa, 0) AS record_id_aaaa
+        FROM domains
+        WHERE active = 1
+          AND COALESCE(docker_wan_update, 0) = 1
+        ORDER BY id DESC
+    ");
+
+    $updated = 0;
+    $skipped = 0;
+
+    while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+        $hasARecord = ((int)($row['record_id_a'] ?? 0) > 0)
+            || (((string)($row['record_type'] ?? '')) !== 'AAAA' && (string)($row['record_id'] ?? '') !== '');
+
+        if (!$hasARecord || (string)($row['zone'] ?? '') === '') {
+            $skipped++;
+            continue;
+        }
+
+        dyndns_update_record($row, $wanIp);
+        dyndns_mark_local_update($row, $wanIp);
+        $updated++;
+    }
+
+    return ['updated' => $updated, 'skipped' => $skipped, 'ip' => $wanIp];
+}
+
 // -------------------- Main --------------------
 $db = db();
 $flash = null;
@@ -140,7 +207,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
         // ---- Refresh (pull current IPs from Netcup into local DB) ----
         elseif ($action === 'refresh') {
             $r = refresh_current_ips_from_netcup();
-            $flash = ['type' => 'ok', 'msg' => "Aktualisiert: {$r['updated']}, übersprungen: {$r['skipped']} ({$r['note']})"];
+            $wan = refresh_marked_domains_from_wan();
+            $flash = [
+                'type' => 'ok',
+                'msg' => "Netcup-Stand: {$r['updated']} aktualisiert, {$r['skipped']} übersprungen ({$r['note']}) | Docker-WAN: {$wan['updated']} aktualisiert, {$wan['skipped']} übersprungen (IPv4 {$wan['ip']})"
+            ];
+            do_autosync($db, $flash);
         }
 
         // ---- Create A record at Netcup + create local entry + token ----
@@ -320,7 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
         }
 
         // ---- Actions that require ID ----
-        elseif (in_array($action, ['toggle', 'delete', 'rotate', 'showtoken', 'test'], true)) {
+        elseif (in_array($action, ['toggle', 'delete', 'rotate', 'showtoken', 'test', 'toggle_docker_wan'], true)) {
             $id = (int)($_POST['id'] ?? 0);
             if ($id <= 0) throw new RuntimeException("Ungültige ID");
 
@@ -465,6 +537,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
                     $flash = ['type' => 'error', 'msg' => "Test FEHLER ({$row['fqdn']}) HTTP $code: $short"];
                 }
             }
+
+            if ($action === 'toggle_docker_wan') {
+                $enabled = isset($_POST['docker_wan_update']) ? 1 : 0;
+                $stmt = $db->prepare("
+                    UPDATE domains
+                    SET docker_wan_update = :enabled,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                ");
+                $stmt->bindValue(':enabled', $enabled, SQLITE3_INTEGER);
+                $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+                $stmt->execute();
+                $flash = [
+                    'type' => 'ok',
+                    'msg' => $enabled === 1
+                        ? 'Docker-WAN-Aktualisierung fuer die Domain aktiviert.'
+                        : 'Docker-WAN-Aktualisierung fuer die Domain deaktiviert.'
+                ];
+            }
         }
 
         else {
@@ -543,6 +634,7 @@ $res = $db->query('
            COALESCE(record_id_a, 0)    AS record_id_a,
            COALESCE(record_id_aaaa, 0) AS record_id_aaaa,
            active, last_ip, last_update, created_at,
+           COALESCE(docker_wan_update, 0) AS docker_wan_update,
            COALESCE(provider_synced_at, "") AS provider_synced_at,
            COALESCE(updated_at, "") AS updated_at,
            COALESCE(note, "") AS note,
@@ -569,6 +661,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
     .row { display: flex; gap: 12px; flex-wrap: wrap; }
     label { display:block; font-size: 13px; margin-bottom: 6px; color: #333; }
     input { padding: 10px; border: 1px solid #bbb; border-radius: 8px; min-width: 260px; }
+    input[type="checkbox"] { min-width: auto; width: 16px; height: 16px; padding: 0; border-radius: 4px; }
     button { padding: 9px 12px; border: 0; border-radius: 8px; cursor: pointer; }
     button.primary { background: #111; color: #fff; }
     button.warn { background: #f3f3f3; }
@@ -674,6 +767,9 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
   </form>
   <div class="muted" style="margin-top:8px;">
     Hinweis: Für die Aktualisierung wird die Spalte <code>zone</code> benötigt (Netcup-Import setzt sie automatisch).
+  </div>
+  <div class="muted" style="margin-top:6px;">
+    Zusätzlich aktualisiert dieser Button alle Einträge mit aktivierter Docker-WAN-Option direkt auf die aktuelle öffentliche IPv4 des Docker-Hosts.
   </div>
   <div class="muted" style="margin-top:6px;">
     DynDNS-Modus:
@@ -806,6 +902,7 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
           <th>Zuletzt mit Netcup abgeglichen</th>
           <th>Zone</th>
           <th>Notiz</th>
+          <th>Docker-WAN</th>
           <th>Aktionen</th>
         </tr>
       </thead>
@@ -829,6 +926,17 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
             <td><?= h($d['provider_synced_at'] ?? '') ?></td>
             <td><?= h($d['zone'] ?? '') ?></td>
             <td><?= h($d['note'] ?? '') ?></td>
+            <td>
+              <form class="inline" method="post">
+                <input type="hidden" name="action" value="toggle_docker_wan">
+                <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
+                <label style="display:flex; align-items:center; gap:6px; margin:0;">
+                  <input type="checkbox" name="docker_wan_update" value="1" <?= ((int)($d['docker_wan_update'] ?? 0) === 1) ? 'checked' : '' ?> onchange="this.form.submit()">
+                  <span>mit Docker-WAN pflegen</span>
+                </label>
+              </form>
+              <div class="muted">Nur fuer interne Heimnetz-Clients gedacht.</div>
+            </td>
             <td>
               <form class="inline" method="post" onsubmit="return confirm('Status wirklich umschalten?');">
                 <input type="hidden" name="action" value="toggle">

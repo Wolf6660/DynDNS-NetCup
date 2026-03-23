@@ -69,7 +69,8 @@ function ensure_domains_table(SQLite3 $db): void
             record_type TEXT,
             token_enc TEXT,
             record_id_a INTEGER,
-            record_id_aaaa INTEGER
+            record_id_aaaa INTEGER,
+            docker_wan_update INTEGER DEFAULT 0
         )
     ");
 }
@@ -94,6 +95,7 @@ function ensure_domains_schema(SQLite3 $db): void
         'record_id_a' => 'ALTER TABLE domains ADD COLUMN record_id_a INTEGER',
         'record_id_aaaa' => 'ALTER TABLE domains ADD COLUMN record_id_aaaa INTEGER',
         'provider_synced_at' => 'ALTER TABLE domains ADD COLUMN provider_synced_at TEXT',
+        'docker_wan_update' => 'ALTER TABLE domains ADD COLUMN docker_wan_update INTEGER DEFAULT 0',
     ];
 
     foreach ($wantedColumns as $column => $sql) {

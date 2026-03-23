@@ -13,4 +13,5 @@ return [
     'update_url' => app_env('DYNDNS_UPDATE_URL', ''),
     'trust_proxy_headers' => app_env_bool('TRUST_PROXY_HEADERS', false),
     'debug_ip_endpoint' => app_env_bool('DEBUG_IP_ENDPOINT', false),
+    'wan_ip_lookup_url' => app_env('WAN_IP_LOOKUP_URL', 'https://api.ipify.org'),
 ];
