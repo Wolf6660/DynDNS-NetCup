@@ -64,6 +64,16 @@ docker compose up -d --build
 
 - `http://IP-Docker-Server:8080`
 
+## Netcup CCP vorbereiten
+
+Im Netcup CCP unter `Domains` sollten fuer eine sinnvolle Nutzung als DynDNS-Domain diese Werte gesetzt sein:
+
+- `TTL = 120`
+- `Expire = 1209600`
+- `Retry = 900`
+- `Refresh = 3600`
+- `DNSSEC Status = deaktiviert`
+
 ## Welche Betriebsart soll ich nehmen?
 
 ### Variante A: Netcup-Webspace
