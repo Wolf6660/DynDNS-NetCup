@@ -327,7 +327,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
         }
 
         // ---- Actions that require ID ----
-        elseif (in_array($action, ['toggle', 'delete', 'rotate', 'showtoken', 'test', 'toggle_docker_wan'], true)) {
+        elseif (in_array($action, ['toggle', 'delete', 'rotate', 'showtoken', 'test', 'toggle_docker_wan', 'update_note'], true)) {
             $id = (int)($_POST['id'] ?? 0);
             if ($id <= 0) throw new RuntimeException("Ungültige ID");
 
@@ -497,6 +497,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
                         ? "Docker-WAN-Aktualisierung fuer die Domain aktiviert (alle {$interval} Minute" . ($interval === 1 ? '' : 'n') . ').'
                         : 'Docker-WAN-Aktualisierung fuer die Domain deaktiviert.'
                 ];
+            }
+
+            if ($action === 'update_note') {
+                $note = trim((string)($_POST['note'] ?? ''));
+                $stmt = $db->prepare("
+                    UPDATE domains
+                    SET note = :note,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                ");
+                $stmt->bindValue(':note', $note, SQLITE3_TEXT);
+                $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+                $stmt->execute();
+                $flash = ['type' => 'ok', 'msg' => 'Notiz gespeichert.'];
             }
         }
 
@@ -909,6 +923,13 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
                 <input type="hidden" name="action" value="showtoken">
                 <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
                 <button class="warn" type="submit">Token anzeigen</button>
+              </form>
+
+              <form class="inline" method="post" onsubmit="var note = prompt('Notiz bearbeiten', <?= json_encode((string)($d['note'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>); if (note === null) return false; this.note.value = note;">
+                <input type="hidden" name="action" value="update_note">
+                <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
+                <input type="hidden" name="note" value="">
+                <button class="warn" type="submit">Notiz bearbeiten</button>
               </form>
 
               <form class="inline" method="post" onsubmit="return confirm('Test ausführen? (ruft Netcup-Update-Endpoint auf)');">
