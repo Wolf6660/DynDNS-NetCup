@@ -20,10 +20,8 @@ chown -R www-data:www-data "$DATA_DIR" "$EXPORT_DIR"
 
 if [ -n "$DOC_ROOT" ]; then
   sed -ri "s!/var/www/html!$APP_DIR!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
-  sed -ri "s!DocumentRoot ${APP_DIR}/[^[:space:]]+!DocumentRoot ${DOC_ROOT}!g" /etc/apache2/sites-available/000-default.conf
-  sed -ri "s!DocumentRoot ${APP_DIR}!DocumentRoot ${DOC_ROOT}!g" /etc/apache2/sites-available/000-default.conf
-  sed -ri "s!<Directory ${APP_DIR}/[^>]+>!<Directory ${DOC_ROOT}>!g" /etc/apache2/apache2.conf
-  sed -ri "s!<Directory ${APP_DIR}>!<Directory ${DOC_ROOT}>!g" /etc/apache2/apache2.conf
+  sed -ri "s!^([[:space:]]*DocumentRoot[[:space:]]+).*!\\1${DOC_ROOT}!g" /etc/apache2/sites-available/000-default.conf
+  sed -ri "s!<Directory ${APP_DIR}(/[^>]*)?>!<Directory ${DOC_ROOT}>!g" /etc/apache2/apache2.conf
 fi
 
 if [ "$ENABLE_DOCKER_WAN_WORKER" = "true" ]; then
