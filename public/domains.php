@@ -635,6 +635,11 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
     code { word-break: break-all; }
     .muted { color:#666; font-size: 12px; }
     form.inline { display:inline; margin:0; }
+    .note-display { display:flex; align-items:flex-start; gap:8px; }
+    .note-text { min-height: 20px; white-space: pre-wrap; word-break: break-word; }
+    .icon-button { background:#f3f3f3; border:1px solid #ddd; border-radius:8px; padding:4px 8px; cursor:pointer; line-height:1; }
+    .note-editor { display:none; margin-top:8px; }
+    .note-editor.is-open { display:block; }
     details.card > summary { cursor: pointer; }
     details.card[open] > summary { margin-bottom: 10px; }
   </style>
@@ -885,11 +890,20 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
             <td><?= h($d['provider_synced_at'] ?? '') ?></td>
             <td><?= h($d['zone'] ?? '') ?></td>
             <td>
-              <form method="post" style="display:flex; flex-direction:column; gap:6px; margin:0;">
+              <div class="note-display">
+                <div class="note-text">
+                  <?= h($d['note'] ?? '') !== '' ? nl2br(h($d['note'] ?? '')) : '<span class="muted">Keine Notiz</span>' ?>
+                </div>
+                <button class="icon-button" type="button" title="Notiz bearbeiten" onclick="var editor=document.getElementById('note-editor-<?= (int)$d['id'] ?>'); if(editor){ editor.classList.toggle('is-open'); }">✎</button>
+              </div>
+              <form id="note-editor-<?= (int)$d['id'] ?>" class="note-editor" method="post">
                 <input type="hidden" name="action" value="update_note">
                 <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
                 <input name="note" value="<?= h($d['note'] ?? '') ?>" placeholder="Notiz hinzufuegen" style="min-width:220px;">
-                <button class="warn" type="submit">Notiz speichern</button>
+                <div style="margin-top:6px; display:flex; gap:6px;">
+                  <button class="warn" type="submit">Speichern</button>
+                  <button class="warn" type="button" onclick="document.getElementById('note-editor-<?= (int)$d['id'] ?>').classList.remove('is-open');">Abbrechen</button>
+                </div>
               </form>
             </td>
             <td>
