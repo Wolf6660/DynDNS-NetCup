@@ -43,6 +43,7 @@ function docker_wan_due_domains(SQLite3 $db): array
                COALESCE(record_type, '') AS record_type,
                COALESCE(record_id_a, 0) AS record_id_a,
                COALESCE(record_id_aaaa, 0) AS record_id_aaaa,
+               COALESCE(last_ip, '') AS last_ip,
                COALESCE(docker_wan_interval_minutes, 5) AS docker_wan_interval_minutes,
                COALESCE(docker_wan_last_run_at, '') AS docker_wan_last_run_at
         FROM domains
@@ -92,13 +93,15 @@ function docker_wan_process_due_domains(): array
     $domains = docker_wan_due_domains($db);
 
     if ($domains === []) {
-        return ['updated' => 0, 'skipped' => 0, 'ip' => '', 'domains' => []];
+        return ['updated' => 0, 'unchanged' => 0, 'skipped' => 0, 'ip' => '', 'domains' => [], 'unchanged_domains' => []];
     }
 
     $wanIp = docker_wan_fetch_public_ipv4();
     $updated = 0;
+    $unchanged = 0;
     $skipped = 0;
     $updatedDomains = [];
+    $unchangedDomains = [];
 
     foreach ($domains as $row) {
         $hasARecord = ((int)($row['record_id_a'] ?? 0) > 0)
@@ -110,6 +113,13 @@ function docker_wan_process_due_domains(): array
             continue;
         }
 
+        if ((string)($row['last_ip'] ?? '') === $wanIp) {
+            $unchanged++;
+            docker_wan_mark_run($db, (int)$row['id']);
+            $unchangedDomains[] = (string)$row['fqdn'];
+            continue;
+        }
+
         dyndns_update_record($row, $wanIp);
         dyndns_mark_local_update($row, $wanIp);
         docker_wan_mark_run($db, (int)$row['id']);
@@ -117,5 +127,12 @@ function docker_wan_process_due_domains(): array
         $updatedDomains[] = (string)$row['fqdn'];
     }
 
-    return ['updated' => $updated, 'skipped' => $skipped, 'ip' => $wanIp, 'domains' => $updatedDomains];
+    return [
+        'updated' => $updated,
+        'unchanged' => $unchanged,
+        'skipped' => $skipped,
+        'ip' => $wanIp,
+        'domains' => $updatedDomains,
+        'unchanged_domains' => $unchangedDomains,
+    ];
 }
