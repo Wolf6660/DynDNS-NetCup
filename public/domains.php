@@ -884,7 +884,14 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
             <td><?= h($d['last_update'] ?? '') ?></td>
             <td><?= h($d['provider_synced_at'] ?? '') ?></td>
             <td><?= h($d['zone'] ?? '') ?></td>
-            <td><?= h($d['note'] ?? '') ?></td>
+            <td>
+              <form method="post" style="display:flex; flex-direction:column; gap:6px; margin:0;">
+                <input type="hidden" name="action" value="update_note">
+                <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
+                <input name="note" value="<?= h($d['note'] ?? '') ?>" placeholder="Notiz hinzufuegen" style="min-width:220px;">
+                <button class="warn" type="submit">Notiz speichern</button>
+              </form>
+            </td>
             <td>
               <form class="inline" method="post">
                 <input type="hidden" name="action" value="toggle_docker_wan">
@@ -923,13 +930,6 @@ while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
                 <input type="hidden" name="action" value="showtoken">
                 <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
                 <button class="warn" type="submit">Token anzeigen</button>
-              </form>
-
-              <form class="inline" method="post" onsubmit="var note = prompt('Notiz bearbeiten', <?= json_encode((string)($d['note'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>); if (note === null) return false; this.note.value = note;">
-                <input type="hidden" name="action" value="update_note">
-                <input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
-                <input type="hidden" name="note" value="">
-                <button class="warn" type="submit">Notiz bearbeiten</button>
               </form>
 
               <form class="inline" method="post" onsubmit="return confirm('Test ausführen? (ruft Netcup-Update-Endpoint auf)');">
