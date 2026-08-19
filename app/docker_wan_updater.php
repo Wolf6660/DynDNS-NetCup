@@ -87,6 +87,63 @@ function docker_wan_mark_run(SQLite3 $db, int $id): void
     $stmt->execute();
 }
 
+function docker_wan_apply_updates(SQLite3 $db, array $domains, string $wanIp): array
+{
+    if ($domains === []) {
+        return ['updated' => 0, 'domains' => []];
+    }
+
+    $domainsByZone = [];
+    foreach ($domains as $domain) {
+        $zone = (string)($domain['zone'] ?? '');
+        $domainsByZone[$zone][] = $domain;
+    }
+
+    $updated = 0;
+    $updatedDomains = [];
+
+    $sid = netcup_login();
+    try {
+        foreach ($domainsByZone as $zone => $zoneDomains) {
+            $records = netcup_info_dns_records($sid, $zone);
+
+            foreach ($zoneDomains as $domain) {
+                $targetIds = dyndns_target_record_ids($domain, $wanIp);
+                if (count($targetIds) === 0) {
+                    throw new RuntimeException('incomplete domain configuration');
+                }
+
+                $matched = false;
+                foreach ($records as &$record) {
+                    if (isset($record['id']) && in_array((string)$record['id'], $targetIds, true)) {
+                        $record['destination'] = $wanIp;
+                        $record['deleterecord'] = false;
+                        $matched = true;
+                    }
+                }
+                unset($record);
+
+                if (!$matched) {
+                    throw new RuntimeException('record not found at provider');
+                }
+            }
+
+            netcup_update_dns_records($sid, $zone, $records);
+
+            foreach ($zoneDomains as $domain) {
+                dyndns_mark_local_update($domain, $wanIp);
+                docker_wan_mark_run($db, (int)$domain['id']);
+                $updated++;
+                $updatedDomains[] = (string)($domain['fqdn'] ?? '');
+            }
+        }
+    } finally {
+        netcup_logout($sid);
+    }
+
+    return ['updated' => $updated, 'domains' => $updatedDomains];
+}
+
 function docker_wan_process_due_domains(): array
 {
     $db = db();
@@ -97,10 +154,9 @@ function docker_wan_process_due_domains(): array
     }
 
     $wanIp = docker_wan_fetch_public_ipv4();
-    $updated = 0;
     $unchanged = 0;
     $skipped = 0;
-    $updatedDomains = [];
+    $pendingUpdates = [];
     $unchangedDomains = [];
 
     foreach ($domains as $row) {
@@ -120,19 +176,17 @@ function docker_wan_process_due_domains(): array
             continue;
         }
 
-        dyndns_update_record($row, $wanIp);
-        dyndns_mark_local_update($row, $wanIp);
-        docker_wan_mark_run($db, (int)$row['id']);
-        $updated++;
-        $updatedDomains[] = (string)$row['fqdn'];
+        $pendingUpdates[] = $row;
     }
 
+    $updateResult = docker_wan_apply_updates($db, $pendingUpdates, $wanIp);
+
     return [
-        'updated' => $updated,
+        'updated' => (int)($updateResult['updated'] ?? 0),
         'unchanged' => $unchanged,
         'skipped' => $skipped,
         'ip' => $wanIp,
-        'domains' => $updatedDomains,
+        'domains' => $updateResult['domains'] ?? [],
         'unchanged_domains' => $unchangedDomains,
     ];
 }
