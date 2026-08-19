@@ -209,25 +209,32 @@ function netcup_create_dns_record(string $sid, string $zone, string $hostname, s
     netcup_update_dns_records($sid, $zone, $records);
 }
 
-function netcup_delete_dns_record(string $sid, string $zone, int $recordId): void {
+function netcup_delete_dns_records(string $sid, string $zone, array $recordIds): void {
+    $recordIds = array_values(array_unique(array_filter(array_map('intval', $recordIds), static fn($id) => $id > 0)));
+    if ($recordIds === []) {
+        return;
+    }
+
     $records = netcup_info_dns_records($sid, $zone);
 
-    $found = false;
+    $foundAny = false;
     foreach ($records as &$rec) {
-        if (isset($rec['id']) && (int)$rec['id'] === (int)$recordId) {
+        if (isset($rec['id']) && in_array((int)$rec['id'], $recordIds, true)) {
             $rec['deleterecord'] = true;
-            $found = true;
-            break;
+            $foundAny = true;
         }
     }
     unset($rec);
 
-    if (!$found) {
-        // Ist schon weg → als Erfolg behandeln
+    if (!$foundAny) {
         return;
     }
 
     netcup_update_dns_records($sid, $zone, $records);
+}
+
+function netcup_delete_dns_record(string $sid, string $zone, int $recordId): void {
+    netcup_delete_dns_records($sid, $zone, [$recordId]);
 }
 
 function netcup_update_dns_records(string $sessionId, string $zone, array $dnsrecords): array {

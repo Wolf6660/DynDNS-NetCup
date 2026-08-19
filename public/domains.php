@@ -370,9 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== '') {
 
                 $sid = netcup_login();
                 try {
-                    foreach ($recordIds as $recordId) {
-                        netcup_delete_dns_record($sid, $zone, $recordId);
-                    }
+                    netcup_delete_dns_records($sid, $zone, $recordIds);
                 } finally {
                     netcup_logout($sid);
                 }
